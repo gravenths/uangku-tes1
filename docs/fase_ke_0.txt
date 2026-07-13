@@ -1,0 +1,282 @@
+FASE 0 — Audit Repo & Setup Tambahan
+=====================================
+Status: SELESAI (termasuk perbaikan bug Flutter)
+Dikerjakan oleh: agent pertama (setup dasar) + agent kedua (audit + verifikasi Flutter)
+
+===========================================================================
+1. RINGKASAN PEKERJAAN
+===========================================================================
+
+Fase 0 mencakup dua bagian:
+
+A. Setup yang sudah dikerjakan agent pertama (diverifikasi ulang):
+   - Memasang inertiajs/inertia-laravel, laravel/sanctum via Composer
+   - Memasang vue, @inertiajs/vue3, @vitejs/plugin-vue, tailwindcss via npm
+   - Mendaftarkan routing api di bootstrap/app.php
+   - Mendaftarkan middleware HandleInertiaRequests (web) dan
+     EnsureFrontendRequestsAreStateful (api) di bootstrap/app.php
+   - Menambahkan guard 'api' dengan driver 'sanctum' di config/auth.php
+   - Membuat app/Http/Middleware/HandleInertiaRequests.php
+   - Membuat resources/views/app.blade.php, resources/js/app.js,
+     resources/js/Pages/Welcome.vue
+   - Mengisi routes/web.php (route '/' → Inertia render 'Welcome')
+   - Mengisi routes/api.php (placeholder + route /user dengan auth:sanctum)
+   - Men-scaffold project Flutter di folder mobile/ (Flutter 3.44.4/Dart 3.12.2)
+   - Mengkonfigurasi ESLint, Prettier, Laravel Pint
+
+B. Perbaikan bug dan verifikasi yang dikerjakan agent kedua (sesi ini):
+   - VERIFIKASI: main.dart sudah memakai const Color kEmerald = Color(0xFF10B981)
+     dengan benar — TIDAK ada Colors.emerald atau primarySwatch (sudah diperbaiki
+     sebelum sesi ini, tapi belum diverifikasi lewat flutter analyze/build)
+   - VERIFIKASI vite.config.js: Bunny Fonts TIDAK ada — plugin hanya laravel,
+     vue, dan tailwindcss. Tidak ada yang perlu dibuang.
+   - MENJALANKAN flutter analyze → No issues found
+   - MENJALANKAN flutter build apk --debug → ✓ Built app-debug.apk
+   - KONFIRMASI php artisan test → 2 passed
+   - KONFIRMASI npm run build → ✓ built in 1.45s
+   - KONFIRMASI vendor/bin/pint --test → PASS 30 files
+
+===========================================================================
+2. DAFTAR & ISI LENGKAP FILE YANG DIBUAT/DIUBAH DI FASE INI
+===========================================================================
+
+Tidak ada file yang diubah di sesi audit ini — semua file sudah dalam kondisi
+benar. Berikut isi lengkap file-file kunci yang diverifikasi:
+
+---------------------------------------------------------------------------
+FILE: mobile/lib/main.dart
+---------------------------------------------------------------------------
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+const Color kEmerald = Color(0xFF10B981);
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'UangKu Mobile',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF111827), // gray-900
+        colorScheme: const ColorScheme.dark(
+          primary: kEmerald,
+          secondary: kEmerald,
+          surface: Color(0xFF1F2937), // gray-800
+        ),
+        useMaterial3: true,
+      ),
+      home: const WelcomeScreen(),
+    );
+  }
+}
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: kEmerald,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kEmerald.withAlpha(76),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'U',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'UangKu',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Aplikasi Manajemen Keuangan Pribadi',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: kEmerald.withAlpha(25),
+                    border: Border.all(
+                      color: kEmerald.withAlpha(76),
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: kEmerald,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Flutter Setup Berhasil ✅',
+                        style: TextStyle(
+                          color: kEmerald,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+---------------------------------------------------------------------------
+FILE: vite.config.js (tidak diubah, diverifikasi bersih — tidak ada Bunny Fonts)
+---------------------------------------------------------------------------
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.js'],
+            refresh: true,
+        }),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
+        tailwindcss(),
+    ],
+    server: {
+        watch: {
+            ignored: ['**/storage/framework/views/**'],
+        },
+    },
+});
+
+---------------------------------------------------------------------------
+FILE: bootstrap/app.php (diverifikasi — routing api, middleware Inertia+Sanctum terdaftar)
+---------------------------------------------------------------------------
+<?php
+
+use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            HandleInertiaRequests::class,
+        ]);
+
+        $middleware->api(prepend: [
+            EnsureFrontendRequestsAreStateful::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*'),
+        );
+    })->create();
+
+===========================================================================
+3. HASIL TEST / BUILD
+===========================================================================
+
+Flutter:
+  flutter --version   → Flutter 3.44.4, Dart 3.12.2 ✓
+  flutter analyze     → "No issues found! (ran in 2.8s)" ✓
+  flutter build apk --debug → "✓ Built build\app\outputs\flutter-apk\app-debug.apk" ✓
+
+Laravel/Vue:
+  php artisan test    → Tests: 2 passed (2 assertions), Duration: 9.84s ✓
+  npm run build       → vite v8.1.4, ✓ built in 1.45s ✓
+  vendor/bin/pint --test → PASS 30 files ✓
+
+===========================================================================
+4. CATATAN TEKNIS
+===========================================================================
+
+Bug #1 (Colors.emerald): SUDAH diperbaiki oleh agent sebelumnya. File main.dart
+sudah benar menggunakan const Color kEmerald = Color(0xFF10B981) dan tidak ada
+referensi Colors.emerald atau primarySwatch.
+
+Bug #2 (Flutter belum diverifikasi): SELESAI di sesi ini. flutter analyze dan
+flutter build apk --debug berhasil dijalankan dan passed.
+
+Bunny Fonts: TIDAK ADA di vite.config.js. Plugin yang terpasang hanya:
+laravel-vite-plugin, @vitejs/plugin-vue, dan @tailwindcss/vite — sesuai rencana.
+Kemungkinan laporan agent sebelumnya tentang Bunny Fonts tidak akurat, atau sudah
+dibersihkan. Tidak ada tindakan yang diperlukan.
+
+===========================================================================
+5. PERTANYAAN / KEPUTUSAN YANG PERLU DIKONFIRMASI SEBELUM FASE 1
+===========================================================================
+
+Tidak ada pertanyaan blocking. Kondisi repo siap untuk Fase 1.
+
+Fase 1 akan mengerjakan: migration seluruh entitas (users, akun, kategori,
+sub_kategori, transaksi, tag, transaksi_tag, audit_log, laporan_tahunan),
+Eloquent Model + relasi, Seeder data awal (9 kategori, 7 sub-kategori, 20 tag),
+Factory untuk testing, dan unit test migration/model dasar.
+
+Mohon konfirmasi eksplisit untuk memulai Fase 1.

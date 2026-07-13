@@ -1,58 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# UangKu — Aplikasi Manajemen Keuangan Pribadi
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+UangKu adalah aplikasi pencatatan keuangan pribadi dengan multi-akun, kategori, dan tag. Proyek ini dibangun di atas Laravel 13 (Backend API & Web) dengan Inertia.js + Vue 3, serta Flutter 3.44.4 (Mobile App).
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🛠️ Stack Teknis
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Backend / Web**: Laravel 13.19.0 (PHP 8.3+) & MySQL 8.0.30
+- **Web Frontend**: Inertia.js + Vue 3 (Composition API) & Tailwind CSS v4
+- **Mobile Frontend**: Flutter 3.44.4 / Dart 3.12.2
+- **Auth**: Laravel Sanctum (SPA Session Cookie untuk Web, Personal Access Token untuk Mobile)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🚀 Cara Menjalankan Secara Lokal
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Prasyarat
+Pastikan Anda memiliki tools berikut terpasang di sistem Anda:
+- PHP >= 8.3
+- Composer
+- Node.js >= 18 & NPM
+- MySQL 8.0.30
+- Flutter SDK 3.44.4 & Dart SDK 3.12.2
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 2. Setup Backend & Web App
 
-## Agentic Development
+1. Klon repositori ini (jika belum).
+2. Salin `.env.example` menjadi `.env` dan sesuaikan kredensial database Anda:
+   ```bash
+   cp .env.example .env
+   ```
+3. Pasang dependensi PHP:
+   ```bash
+   composer install
+   ```
+4. Generate application key:
+   ```bash
+   php artisan key:generate
+   ```
+5. Buat database kosong bernama `uangku-tes1` di MySQL Anda, lalu jalankan migrasi database:
+   ```bash
+   php artisan migrate
+   ```
+6. Pasang dependensi JavaScript (NPM):
+   ```bash
+   npm install
+   ```
+7. Jalankan server Laravel Development:
+   ```bash
+   php artisan serve
+   ```
+8. Jalankan server Vite Development untuk kompilasi Vue & Tailwind CSS:
+   ```bash
+   npm run dev
+   ```
+9. Buka browser dan akses `http://localhost:8000`. Halaman "UangKu — Setup Berhasil ✅" akan tampil.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
-```bash
-composer require laravel/boost --dev
+### 3. Setup Mobile App (Flutter)
 
-php artisan boost:install
-```
+1. Masuk ke folder `mobile/`:
+   ```bash
+   cd mobile
+   ```
+2. Ambil dependensi Flutter:
+   ```bash
+   flutter pub get
+   ```
+3. Hubungkan emulator Android/iOS Anda.
+4. Jalankan aplikasi:
+   ```bash
+   flutter run
+   ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 🧪 Linting & Testing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Backend & Web Linting
+- **PHP Code Styling (Laravel Pint)**:
+  ```bash
+  ./vendor/bin/pint
+  ```
+- **JavaScript/Vue Linting (ESLint + Prettier)**:
+  ```bash
+  # Check for errors
+  npm run lint
+  
+  # Auto-format files
+  npm run format
+  ```
 
-## Code of Conduct
+### Mobile Linting
+- **Dart Formatter & Analyzer**:
+  ```bash
+  cd mobile
+  flutter format lib/
+  flutter analyze
+  ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Testing
+- **Jalankan test suite**:
+  ```bash
+  php artisan test
+  ```
 
-## Security Vulnerabilities
+> [!IMPORTANT]  
+> **Catatan Pengujian Database (SQLite vs MySQL)**:
+> - Test suite diatur menggunakan **SQLite `:memory:`** demi kecepatan dan kebersihan environment pengujian.
+> - Karena fitur audit log memanfaatkan kolom tipe **JSON** (`audit_log.data_lama` / `audit_log.data_baru`) dan saldo berjalan menggunakan `lockForUpdate()` pada row level locking, pastikan untuk melakukan **verifikasi manual di database MySQL asli** untuk fungsionalitas tersebut, sebab SQLite memiliki keterbatasan kompatibilitas atas fitur-fitur tersebut.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

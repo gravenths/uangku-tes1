@@ -1,0 +1,235 @@
+PROMPT SIAP PAKAI UNTUK AGEN CODING
+Proyek UangKu — Laravel + Inertia/Vue + Flutter
+==================================================
+
+CARA PAKAI
+----------
+1. Pastikan folder docs/ di root repo uangku-tes1 sudah berisi tiga file:
+   docs/PRD_UangKu.md, docs/uangku-tes1.sql, dan docs/prompt.txt (file ini).
+2. Di panel Agent, mention ketiga file itu (mis. @docs/PRD_UangKu.md,
+   @docs/uangku-tes1.sql, @docs/prompt.txt), lalu minta agent membaca &
+   mengikuti isi docs/prompt.txt sebagai instruksi kerja.
+3. Kirim.
+
+==================================================
+MULAI PROMPT
+==================================================
+
+Kamu adalah software engineer yang bertugas membangun aplikasi UangKu di atas
+repo Laravel yang SUDAH ADA (github.com/gravenths/uangku-tes1), dan kamu sudah
+berada di dalam folder project ini secara lokal. Repo ini masih berupa
+skeleton Laravel kosong (belum ada Inertia/Vue, belum ada model/migration
+kustom) — jangan buat project Laravel baru dari nol, lanjutkan dari yang
+sudah ada. (Catatan: kalau repo ternyata sudah lebih maju dari skeleton
+kosong saat kamu audit, laporkan temuannya dulu sebelum melanjutkan — jangan
+menimpa pekerjaan yang sudah ada tanpa konfirmasi.)
+
+Sebelum menulis kode apa pun, baca dulu seluruh isi docs/PRD_UangKu.md dan
+docs/uangku-tes1.sql di dalam repo ini sebagai referensi domain & keputusan
+produk. Jika kamu tidak bisa menemukan atau membaca file tersebut, BERHENTI dan
+tanyakan ke saya — jangan melanjutkan berdasarkan asumsi.
+
+--------------------------------------------------
+ATURAN PALING PENTING: BOLEH EDIT FILE LANGSUNG, TAPI TIDAK BOLEH GIT COMMIT/PUSH
+--------------------------------------------------
+Kamu bekerja langsung di folder project lokal ini (uangku-tes1) dan BOLEH
+membuat/mengubah file secara langsung di dalamnya — tidak perlu menampilkan
+seluruh isi file di chat.
+
+Tapi kamu TIDAK memiliki izin untuk melakukan git commit, git push, atau
+operasi git apa pun ke remote mana pun (termasuk gravenths/uangku-tes1).
+Jangan menyentuh folder .git, jangan membuat commit, jangan menulis pesan
+commit, jangan push ke branch apa pun. Saya yang akan mengurus commit/push
+secara manual setelah meninjau hasil kerjamu.
+
+- Boleh menjalankan perintah (artisan, npm, composer, test, flutter) di
+  lingkungan kerja lokal ini untuk membangun dan memverifikasi kode.
+- Setiap kali SATU FASE selesai dikerjakan (termasuk kalau ada revisi di
+  tengah fase karena saya minta perbaikan), buat/perbarui satu file laporan
+  di docs/fase_ke_N.txt (N = nomor fase, mis. docs/fase_ke_0.txt,
+  docs/fase_ke_1.txt, dst). Isi file tersebut harus mencakup:
+    1. Ringkasan singkat apa yang dikerjakan di fase ini
+    2. Daftar & isi LENGKAP seluruh file yang dibuat/diubah untuk fase ini
+       (path lengkap + isi penuh file, bukan potongan/diff saja)
+    3. Kalau ada revisi di tengah fase (mis. saya minta perbaiki bug), catat
+       juga perubahannya di file yang sama — jangan bikin file terpisah
+       untuk revisi, cukup update docs/fase_ke_N.txt yang sudah ada supaya
+       selalu mencerminkan kondisi TERBARU fase tersebut
+    4. Hasil test/build yang dijalankan (output ringkas, bukan hanya
+       "passed" tanpa bukti)
+    5. Pertanyaan/keputusan yang perlu saya konfirmasi sebelum lanjut fase
+       berikutnya
+  Setelah file docs/fase_ke_N.txt ini dibuat/diperbarui, cukup beri tahu saya
+  di chat bahwa file itu sudah siap dibaca — tidak perlu menempel ulang
+  seluruh isinya di chat.
+
+--------------------------------------------------
+STACK FINAL (tidak bisa diganti tanpa persetujuan saya)
+--------------------------------------------------
+- Backend   : Laravel 13.19.0 (PHP 8.3+, disarankan 8.4), MySQL 8.0.30 —
+              dipasang di atas repo gravenths/uangku-tes1 yang sudah ada.
+- Web       : Inertia.js + Vue 3 (bukan Blade murni, bukan Livewire).
+- Auth      : Laravel Sanctum — SPA session untuk web, token personal-access
+              untuk mobile.
+- Mobile    : Flutter 3.44.4 / Dart 3.12.2 (Android & iOS), konsumsi REST API
+              yang sama.
+- Styling   : Tailwind CSS.
+- Opsional  : Laravel Boost boleh disarankan untuk membantu konvensi Laravel,
+              tapi tanya saya dulu sebelum menginstalnya.
+
+--------------------------------------------------
+CARA KERJA YANG SAYA HARAPKAN
+--------------------------------------------------
+- Kerjakan bertahap sesuai fase di bawah, JANGAN lompat fase. Setiap fase
+  punya "Definition of Done" — setelah selesai, berhenti, tampilkan ringkasan
+  + seluruh kode file yang relevan di chat, lalu TUNGGU KONFIRMASI saya
+  sebelum lanjut ke fase berikutnya.
+- Jelaskan keputusan teknis penting secara singkat sebelum implementasi,
+  khususnya yang menyentuh keamanan atau struktur data.
+- Tulis migration, model, dan seeder Laravel baru — jangan import file .sql
+  lama mentah-mentah ke database; gunakan hanya sebagai referensi struktur
+  & data awal.
+- Ikuti seluruh rekomendasi perbaikan skema di PRD Bagian 8.2, termasuk WAJIB:
+  password di-hash, konsolidasi tabel users, nama kolom snake_case, logika
+  saldo & audit log di Eloquent Observer (bukan trigger MySQL), laporan
+  tahunan via Laravel Scheduler (bukan MySQL EVENT), audit_log tersimpan
+  sebagai JSON.
+- Setiap fitur backend wajib punya test otomatis minimal (feature test)
+  sebelum dianggap selesai; tampilkan hasil test di chat.
+- Jika ada bagian PRD yang ambigu atau butuh keputusan yang belum saya
+  tentukan, tanyakan ke saya — jangan berasumsi sendiri untuk hal yang
+  berdampak besar.
+
+==================================================
+RENCANA KERJA BERTAHAP
+==================================================
+
+FASE 0 — Audit Repo & Setup Tambahan
+-------------------------------------
+[ ] Cek isi repo gravenths/uangku-tes1 saat ini (masih skeleton default
+    `laravel new`) dan laporkan ringkas apa yang sudah ada.
+[ ] Konfirmasi docs/PRD_UangKu.md dan docs/uangku-tes1.sql sudah terbaca dan
+    bisa kamu akses; kalau tidak ketemu, berhenti dan tanyakan ke saya.
+[ ] Pasang starter kit Inertia + Vue resmi Laravel di atas skeleton yang ada
+    (jangan re-init project).
+[ ] Setup koneksi MySQL 8.0.30 di .env, pastikan PHP versi terpasang >= 8.3.
+[ ] Install & konfigurasi Laravel Sanctum (mode SPA untuk web + token untuk
+    mobile).
+[ ] Setup project Flutter 3.44.4 terpisah (folder mobile/ di root repo),
+    target Android & iOS.
+[ ] Setup linting/formatting: Laravel Pint, ESLint/Prettier (Vue), dart
+    format.
+[ ] Update README.md dengan cara menjalankan backend, web, dan mobile secara
+    lokal.
+
+  >> Definition of Done Fase 0: php artisan serve jalan, halaman Inertia+Vue
+     default tampil di browser, flutter run bisa build ke emulator (boleh
+     masih halaman kosong).
+
+FASE 1 — Data Model & Migrasi dari Skema Lama
+----------------------------------------------
+[ ] Migration untuk seluruh entitas PRD Bagian 8.1: users, akun, kategori,
+    sub_kategori, transaksi, tag, transaksi_tag (pivot), audit_log,
+    laporan_tahunan — terapkan semua perbaikan di Bagian 8.2.
+[ ] Eloquent Model + relasi untuk masing-masing entitas.
+[ ] Seeder data awal: 9 kategori, 7 sub-kategori, 20 tag (sesuai
+    uangku-tes1.sql).
+[ ] Factory untuk testing (User, Akun, Transaksi dummy).
+[ ] Unit test migration/model dasar.
+
+  >> Definition of Done Fase 1: php artisan migrate:fresh --seed jalan tanpa
+     error, tinker bisa query semua model dengan relasinya, test dasar
+     hijau.
+
+FASE 2 — Backend Core: Auth, Akun, Kategori, Transaksi, Tag (MVP)
+------------------------------------------------------------------
+[ ] Auth: register, login, logout (web via Inertia+Sanctum SPA, mobile via
+    /api/* + token) — FR-1.1 s/d FR-1.3.
+[ ] Rate limiting login.
+[ ] CRUD Akun — FR-2.1 s/d FR-2.3, termasuk konfirmasi eksplisit saat hapus
+    akun berisi transaksi.
+[ ] Endpoint baca Kategori & Sub-kategori — FR-3.1, FR-3.2.
+[ ] CRUD Transaksi + tag — FR-4.1 s/d FR-4.5, dengan Observer saldo (atomik)
+    dan Observer audit log (JSON).
+[ ] Endpoint tag — FR-5.1, FR-5.2.
+[ ] Feature test untuk semua endpoint (happy path + minimal 1 validasi gagal
+    per endpoint).
+
+  >> Definition of Done Fase 2: seluruh endpoint berfungsi & teruji
+     (php artisan test hijau), saldo akun terbukti konsisten setelah
+     beberapa skenario transaksi berturut-turut.
+
+FASE 3 — Web App (Inertia + Vue) untuk MVP
+--------------------------------------------
+[ ] Halaman login/register.
+[ ] Dashboard — FR-6.1 s/d FR-6.6 (saldo total, ringkasan bulan berjalan,
+    transaksi terbaru, ringkasan per akun, grafik distribusi kategori,
+    grafik tren bulanan).
+[ ] Halaman Manajemen Akun (list, tambah, edit, hapus dengan konfirmasi).
+[ ] Halaman Riwayat Transaksi dengan filter kombinasi + pencarian teks —
+    FR-4.4.
+[ ] Form tambah/edit transaksi (kategori & sub-kategori terfilter otomatis
+    sesuai tipe).
+[ ] Halaman detail transaksi + "Lihat riwayat perubahan" (audit log) —
+    FR-8.1, FR-8.2.
+[ ] Komponen chart Vue (mis. vue-chartjs) untuk FR-6.5 dan FR-6.6.
+
+  >> Definition of Done Fase 3: seluruh flow di PRD Bagian 12 bisa
+     dijalankan end-to-end lewat browser, responsif di layar kecil-menengah.
+
+FASE 4 — Mobile App (Flutter) untuk MVP
+------------------------------------------
+[ ] Setup HTTP client (mis. dio) ke API Laravel + penyimpanan token aman
+    (flutter_secure_storage).
+[ ] Layar login/register.
+[ ] Dashboard ringkas mobile — FR-9.2.
+[ ] Form tambah transaksi cepat — FR-9.1 (target <= 3 tap).
+[ ] Layar riwayat transaksi + filter dasar.
+[ ] Layar manajemen akun (list & tambah minimal).
+[ ] Widget test dasar untuk minimal 2 layar utama.
+
+  >> Definition of Done Fase 4: aplikasi bisa dijalankan di emulator, alur
+     login -> dashboard -> tambah transaksi -> transaksi muncul di riwayat
+     berjalan mulus, data konsisten dengan web.
+
+FASE 5 — Hardening, Testing Menyeluruh, Dokumentasi
+------------------------------------------------------
+[ ] Review keamanan: tidak ada password/token ter-log, validasi input di
+    semua endpoint, .env.example lengkap tanpa credential asli.
+[ ] Tambah test coverage edge case penting (transaksi dipindah antar akun,
+    hapus akun berisi transaksi, dst.).
+[ ] Command Artisan rekonsiliasi saldo — jalankan dan laporkan hasilnya.
+[ ] Dokumentasi API ringkas mengikuti daftar endpoint di PRD Bagian 11.
+[ ] Update README.md lengkap untuk onboarding developer baru.
+
+  >> Definition of Done Fase 5: checklist MVP PRD Bagian 5.1 terpenuhi 100%,
+     seluruh test hijau, dokumentasi cukup untuk onboarding.
+
+==================================================
+SETELAH MVP (Fase 6+, jangan mulai sebelum saya konfirmasi)
+==================================================
+Ambil dari PRD Bagian 5.2 (Phase 2) dan 5.3 (Phase 3) — laporan tahunan
+otomatis, ekspor CSV/PDF, kategori/tag kustom, notifikasi push, mode offline
+mobile, budgeting, dst. Tunggu instruksi eksplisit dari saya sebelum masuk ke
+fase ini.
+
+==================================================
+LARANGAN / BATASAN KERAS
+==================================================
+- Boleh edit/buat file langsung di folder project, TAPI jangan pernah git
+  commit, git push, atau operasi git apa pun ke remote mana pun.
+- Jangan gunakan Livewire atau Blade murni untuk web — harus Inertia + Vue.
+- Jangan simpan password dalam bentuk plaintext dalam kondisi apa pun.
+- Jangan taruh logika saldo/audit di trigger atau stored procedure MySQL —
+  semua di layer Laravel.
+- Jangan tandai sebuah fase "selesai" tanpa hasil test/build yang bisa
+  ditunjukkan.
+
+--------------------------------------------------
+Akhiri setiap fase dengan:
+1. Buat/perbarui docs/fase_ke_N.txt berisi: ringkasan, daftar & isi lengkap
+   file yang dibuat/diubah (termasuk revisi di tengah fase kalau ada), hasil
+   test/build, dan pertanyaan/keputusan yang perlu saya konfirmasi
+2. Di chat, cukup beri ringkasan singkat + beri tahu bahwa
+   docs/fase_ke_N.txt sudah siap dibaca, lalu TUNGGU KONFIRMASI saya
+   sebelum lanjut ke fase berikutnya
