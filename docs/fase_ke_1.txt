@@ -1,0 +1,193 @@
+================================================================================
+FASE 1 — Data Model & Migrasi
+Status: SELESAI
+================================================================================
+
+
+RINGKASAN
+---------
+Pada Fase 1 dibuat fondasi data layer aplikasi uangku, mencakup:
+
+  - 8 migration baru (tabel: kategori, sub_kategori, akun, tag, transaksi,
+    transaksi_tag, audit_log, laporan_tahunan)
+  - 7 Eloquent Model baru + update Model User (tambah 4 relasi)
+  - 1 TransaksiObserver (created / updated / deleting, dengan DB::transaction
+    + lockForUpdate untuk keamanan konkurensi)
+  - 3 Seeder baru + update DatabaseSeeder (9 kategori, 7 sub-kategori, 20 tag,
+    1 test user)
+  - 2 Factory baru (AkunFactory, TransaksiFactory)
+  - 2 file test baru — total 14 test case baru (8 unit + 6 feature)
+
+
+================================================================================
+DAFTAR FILE YANG DIBUAT / DIUBAH
+================================================================================
+
+MIGRATION (baru)
+----------------
+  database/migrations/2026_07_13_100001_create_kategori_table.php
+  database/migrations/2026_07_13_100002_create_sub_kategori_table.php
+  database/migrations/2026_07_13_100003_create_akun_table.php
+  database/migrations/2026_07_13_100004_create_tag_table.php
+  database/migrations/2026_07_13_100005_create_transaksi_table.php
+  database/migrations/2026_07_13_100006_create_transaksi_tag_table.php
+  database/migrations/2026_07_13_100007_create_audit_log_table.php
+  database/migrations/2026_07_13_100008_create_laporan_tahunan_table.php
+
+MODELS (baru / diubah)
+-----------------------
+  app/Models/User.php
+      — diubah: ditambah 4 relasi (akun, transaksi, auditLog, laporanTahunan)
+
+  app/Models/Akun.php
+      — baru
+
+  app/Models/Kategori.php
+      — baru
+
+  app/Models/SubKategori.php
+      — baru
+
+  app/Models/Tag.php
+      — baru
+
+  app/Models/Transaksi.php
+      — baru, dilengkapi scopeFilter dengan 7 parameter filter
+
+  app/Models/AuditLog.php
+      — baru; no timestamps, kolom data_lama & data_baru di-cast sebagai JSON
+
+  app/Models/LaporanTahunan.php
+      — baru
+
+OBSERVER & PROVIDER
+--------------------
+  app/Observers/TransaksiObserver.php
+      — baru; handler: created / updated / deleting
+        masing-masing dibungkus DB::transaction + lockForUpdate
+
+  app/Providers/AppServiceProvider.php
+      — diubah: ditambah Transaksi::observe(TransaksiObserver::class)
+
+SEEDERS
+-------
+  database/seeders/KategoriSeeder.php
+      — baru; mengisi 9 kategori
+
+  database/seeders/SubKategoriSeeder.php
+      — baru; mengisi 7 sub-kategori
+
+  database/seeders/TagSeeder.php
+      — baru; mengisi 20 tag
+
+  database/seeders/DatabaseSeeder.php
+      — diubah: memanggil 3 seeder di atas + membuat 1 test user
+
+FACTORIES
+---------
+  database/factories/AkunFactory.php
+      — baru
+
+  database/factories/TransaksiFactory.php
+      — baru
+
+TESTS
+-----
+  tests/Unit/TransaksiObserverTest.php
+      — baru; 8 test case
+
+  tests/Feature/ModelRelationTest.php
+      — baru; 6 test case
+
+
+================================================================================
+KEPUTUSAN TEKNIS PENTING
+================================================================================
+
+1. `deleting` bukan `deleted` di TransaksiObserver
+   -------------------------------------------------
+   AuditLog memiliki kolom transaksi_id dengan constraint FK nullOnDelete.
+   Jika kita menangkap event `deleted` (setelah baris transaksi sudah terhapus),
+   FK transaksi_id langsung menjadi null sebelum AuditLog sempat diinsert —
+   akibatnya kita kehilangan referensi transaksi mana yang dihapus.
+   Dengan menggunakan event `deleting`, transaksi masih ada di database saat
+   AuditLog dibuat, sehingga transaksi_id dapat diisi dengan benar.
+
+2. Lock ordering untuk mencegah deadlock
+   --------------------------------------
+   Saat transaksi pindah akun (akun_lama → akun_baru), kedua baris akun
+   harus di-lock. Untuk menghindari deadlock antar sesi konkuren, lock selalu
+   dilakukan dengan urutan id terkecil terlebih dahulu (lock by min id first).
+
+3. Kolom data_lama & data_baru disimpan sebagai JSON
+   ---------------------------------------------------
+   Sesuai PRD rekomendasi 8.2, kedua kolom tersebut bertipe `json` di skema
+   database, bukan string/text biasa. Di sisi Model, keduanya di-cast dengan
+   $casts = ['data_lama' => 'array', 'data_baru' => 'array'] agar Laravel
+   otomatis serialize/deserialize saat baca-tulis.
+
+4. Laporan tahunan per user (bukan global)
+   ----------------------------------------
+   Tabel laporan_tahunan memiliki kolom user_id dan unique constraint pada
+   kombinasi (tahun, user_id). Ini lebih granular dibanding skema lama yang
+   menyimpan laporan secara global, dan memungkinkan setiap user memiliki
+   laporan tahunan independen.
+
+
+================================================================================
+HASIL TEST / BUILD
+================================================================================
+
+  php artisan migrate:fresh --seed
+  → DONE (12 migration + 3 seeder berjalan)
+
+  Tinker verify:
+  → Users: 1 | Kategori: 9 | SubKategori: 7 | Tag: 20
+
+  php artisan test
+  → Tests: 16 passed (41 assertions), Duration: 1.27s
+
+Detail test yang passed:
+------------------------
+  TransaksiObserverTest — 8 test:
+    - Saldo akun bertambah saat transaksi pemasukan dibuat
+    - Saldo akun berkurang saat transaksi pengeluaran dibuat
+    - Audit log diinsert saat transaksi dibuat (event created)
+    - Audit log diinsert saat transaksi diupdate (event updated)
+    - Audit log diinsert saat transaksi dihapus (event deleting)
+    - Saldo akun lama & baru diupdate saat pindah akun
+    - Rollback saldo jika terjadi exception dalam transaksi DB
+    - transaksi_id pada audit log tidak null setelah transaksi dihapus
+
+  ModelRelationTest — 6 test:
+    - user → akun (hasMany)
+    - akun → user (belongsTo)
+    - transaksi → akun (belongsTo)
+    - transaksi ↔ tag (belongsToMany pivot)
+    - kategori → subKategori (hasMany)
+    - transaksi → auditLog (hasMany)
+
+  ExampleTest — 2 test (sudah ada sebelumnya, tetap passed)
+
+
+================================================================================
+PERTANYAAN / KEPUTUSAN UNTUK DIKONFIRMASI SEBELUM FASE 2
+================================================================================
+
+Tidak ada pertanyaan blocking.
+Semua ambiguitas dalam PRD telah diputuskan dan didokumentasikan pada bagian
+"Keputusan Teknis Penting" di atas.
+
+Fase 2 akan mengerjakan:
+  - Auth: register / login / logout (web + mobile / API)
+  - Rate limiting pada endpoint auth dan transaksi
+  - CRUD Akun
+  - Endpoint read-only Kategori & Sub-kategori
+  - CRUD Transaksi (termasuk attach/detach tag)
+  - Endpoint Tag
+  - Feature test untuk seluruh endpoint di atas
+
+
+================================================================================
+EOF
+================================================================================
